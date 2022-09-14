@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
 	width: 100%;
 	height: 100%;
 
@@ -18,6 +19,8 @@ html, body {
 .button {
 	padding: 10px;
 	font-size: 20px;
+
+	margin: 20px;
 
 	background: #bbb;
 	border-radius: 5px;
