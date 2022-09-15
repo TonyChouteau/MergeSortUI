@@ -1,6 +1,6 @@
 $(document).ready(_ => {
 	const def = []
-	for (let i=0; i<100; i++) {
+	for (let i=0; i<10; i++) {
 			def.push(parseInt(Math.random()*1000));
 	}
 

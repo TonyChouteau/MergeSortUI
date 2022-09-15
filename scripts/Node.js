@@ -14,17 +14,19 @@ const Node = function (input, parent, depth) {
 
 		this.left = new Node(leftList, this, this.__depth + 1);
 		this.right = new Node(rightList, this, this.__depth + 1);
+	} else if (this.size === 1) {
+		this.state = Node.ODD;
 	} else {
 		this.state = Node.END;
 	}
 };
 
-Node.ROOT = undefined;
 Node.LEFT = 0;
 Node.RIGHT = 1;
 Node.END = 2;
-Node.MERGE = 3;
-Node.UP = 4;
+Node.ODD = 3;
+Node.MERGE = 4;
+Node.UP = 5;
 
 Node.prototype = {
 	cut: function (list) {
@@ -40,13 +42,18 @@ Node.prototype = {
 		return [left, right];
 	},
 	done: function () {
-		// error
+		// error if end ?
 		this.state = Node.UP;
-		let parentState = this.parent.state;
-		if (parentState === Node.LEFT) {
-			this.parent.state = Node.RIGHT;
-		} else if (parentState === Node.RIGHT) {
-			this.parent.state = Node.MERGE;
+		if (!isNill(this.parent)) {
+			let parentState = this.parent.state;
+			if (parentState === Node.LEFT) {
+				this.parent.state = Node.RIGHT;
+			} else if (parentState === Node.RIGHT) {
+				this.parent.state = Node.MERGE;
+			}
+			return false;
+		} else {
+			return true;
 		}
 	},
 	stopMoving: function () {

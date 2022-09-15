@@ -1,3 +1,3 @@
 (() => {
-	window.isNill = v => v === null || v === undefined;&
+	window.isNill = v => v === null || v === undefined;
 })()

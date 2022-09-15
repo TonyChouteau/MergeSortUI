@@ -11,8 +11,10 @@ const Cursor = function (node, selectors) {
 	this.toMerge;
 	this.merge;
 
-  this.$left.on("click", _ => this.choice(0));
-  this.$right.on("click", _ => this.choice(1));
+	this.$left.on("click", _ => this.choice(0));
+	this.$right.on("click", _ => this.choice(1));
+
+	this.isEnd = false;
 
 	this.move();
 	// this.button = $(".button").on("click", e => this.handleInput(e));
@@ -51,7 +53,7 @@ Cursor.prototype = {
 		while (!this.node.stopMoving()) {
 			i++;
 			if (i > 20) {
-        this.log("Error");
+				this.log("Error");
 				return;
 			}
 			if (this.node.state === this.node.__class.LEFT) {
@@ -60,6 +62,11 @@ Cursor.prototype = {
 			} else if (this.node.state === this.node.__class.RIGHT) {
 				this.log("RIGHT");
 				this.node = this.node.right;
+			} else if (this.node.state === this.node.__class.ODD) {
+				this.log("ODD");
+				this.node.done();
+				this.node.sortedList = this.node.list;
+				this.node = this.node.parent;
 			} else {
 				this.log("PARENT");
 				if (this.node.parent) {
@@ -85,33 +92,30 @@ Cursor.prototype = {
 	// Handling display
 
 	displayCompare: function () {
-		this.log("DISPLAY COMPARE");
 		this.toCompare = this.node.list;
-		console.log(this.toCompare);
 
-    this.displayButtons();
+		this.log("DISPLAY COMPARE", this.toCompare);
+		this.displayButtons();
 	},
 
 	displayMerge: function () {
-		this.log("DISPLAY MERGE", this.merge);
 		if (isNill(this.merge)) {
-      this.toMerge = {
-        left: this.node.left.list,
-        right: this.node.right.list
-      };
-      this.merge = [];
-      this.toCompare = [this.toMerge.left.shift(), this.toMerge.right.shift()];
+			this.toMerge = {
+				left: this.node.left.sortedList,
+				right: this.node.right.sortedList
+			};
+			this.merge = [];
+			this.toCompare = [this.toMerge.left.shift(), this.toMerge.right.shift()];
+		}
 
-      this.displayButtons();
-    } else {
-      
-    }
+		this.log("DISPLAY MERGE", this.toMerge, this.toCompare, this.merge);
+		this.displayButtons();
 	},
 
-  displayButtons: function() {
-    this.$left.text(this.toCompare[0]);
-    this.$right.text(this.toCompare[1]);
-  },
+	displayButtons: function () {
+		this.$left.text(this.toCompare[0]);
+		this.$right.text(this.toCompare[1]);
+	},
 
 	// ========================================
 	// ==        User can choose here        ==
@@ -138,23 +142,46 @@ Cursor.prototype = {
 		this.log("COMPARE", this.toCompare);
 		const list = this.toCompare;
 		this.node.sortedList = [list[input], list[(input + 1) % 2]];
-		this.log("AFTER COMPARE", this.node.sortedList);
 
 		this.toCompare = null;
-		this.node.done();
-		this.move();
+		this.isEnd = this.node.done();
+
+		this.log("AFTER COMPARE", this.node.sortedList);
+		this.loop();
 	},
 
 	handleMerge: function (input) {
 		this.log("MERGE", this.toMerge, this.toCompare, this.merge);
-    this.merge.unshift(this.toCompare[input]);
-    if (input === 0) {
-      if (this.toMerge.left.lenght > 0) {
-        this.toCompare[input] = this.toMerge.left.shift();
-      }
-    }
-    // this.toCompare[]
-		this.log("AFTER MERGE", this.toMerge, this.toCompare, this.merge);
+
+		this.merge.push(this.toCompare[input]);
+		const lists = [this.toMerge.left, this.toMerge.right];
+		if (lists[input].length > 0) {
+			this.toCompare[input] = lists[input].shift();
+		} else {
+			this.merge.push(this.toCompare[(input + 1) % 2], ...this.toMerge.right, ...this.toMerge.left);
+			this.toMerge = null;
+			this.toCompare = null;
+
+			this.node.sortedList = this.merge;
+			this.merge = null;
+			
+			this.isEnd = this.node.done();
+		}
+		this.log("AFTER MERGE", this.toMerge, this.toCompare, this.merge, this.sortedList);
+		this.loop();
+	},
+
+	loop: function() {
+		if (!this.isEnd) {
+			this.move();
+		} else {
+			this.end();
+		}
+	},
+
+	end: function() {
+		this.log("END", this.node);
+		this.log(this.node.sortedList);
 	},
 
 	// ========================================
