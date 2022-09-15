@@ -29,6 +29,11 @@ Node.MERGE = 4;
 Node.UP = 5;
 
 Node.prototype = {
+
+	// ========================================
+	// ==           Logic methods            ==
+	// ========================================
+
 	cut: function (list) {
 		let mid = list.length / 2;
 		[left, right] = [[], []];
@@ -41,6 +46,7 @@ Node.prototype = {
 		}
 		return [left, right];
 	},
+
 	done: function () {
 		// error if end ?
 		this.state = Node.UP;
@@ -56,9 +62,16 @@ Node.prototype = {
 			return true;
 		}
 	},
+
 	stopMoving: function () {
 		return this.state === Node.END
 			|| this.state === Node.MERGE
 			|| this.state === Node.UP && this.parent === undefined;
 	}
+
+	// ========================================
+	// ==          Display methods           ==
+	// ========================================
+
+	// TODO : display tree or at least sub-tree
 };
