@@ -15,3 +15,5 @@ TODO :
 
 - display branch
 - display result list in html
+
+- auto test with large input list and auto click results
