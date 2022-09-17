@@ -1,9 +1,24 @@
-const Cursor = function (node, selectors) {
-	this.node = node;
-	this.$left = $(selectors[0]);
-	this.$right = $(selectors[1]);
+const Cursor = function (node, options) {
+	this.stats = {
+		compare: 0,
+		move: 0,
+	};
 
-	this.debug = true;
+	this.node = node;
+
+	this.options = isNill(options) ? {} : {
+		debug: options.debug || false,
+		auto: options.auto || true,
+		leftSelector: !isNill(options.selectors) && options.selectors[0] ? options.selectors[0] : null,
+		rightSelector: !isNill(options.selectors) && options.selectors[1] ? options.selectors[1] : null,
+		callback: options.callback 
+	};
+
+	this.debug = this.options.debug;
+	this.auto = this.options.auto;
+	this.$left = $(this.options.leftSelector);
+	this.$right = $(this.options.rightSelector);
+	this.callback = this.options.callback;
 
 	this.state = Cursor.COMPARE;
 
@@ -11,13 +26,10 @@ const Cursor = function (node, selectors) {
 	this.toMerge;
 	this.merge;
 
-	this.$left.on("click", _ => this.choice(0));
-	this.$right.on("click", _ => this.choice(1));
+	this.$left.off().on("click", _ => this.choice(0));
+	this.$right.off().on("click", _ => this.choice(1));
 
 	this.isEnd = false;
-
-	this.move();
-	// this.button = $(".button").on("click", e => this.handleInput(e));
 };
 
 /*
@@ -44,6 +56,10 @@ const Cursor = function (node, selectors) {
 */
 
 Cursor.prototype = {
+
+	run: function () {
+		this.move();
+	},
 
 	// Handling merge sort logic (1/2)
 
@@ -73,6 +89,7 @@ Cursor.prototype = {
 					this.node = this.node.parent;
 				}
 			}
+			this.stats.move ++;
 		}
 		this.log("AFTER MOVE", this.node);
 		this.handleNode();
@@ -113,8 +130,24 @@ Cursor.prototype = {
 	},
 
 	displayButtons: function () {
-		this.$left.text(this.toCompare[0]);
-		this.$right.text(this.toCompare[1]);
+		this.stats.compare++;
+		if (!isNill(this.$left) && !isNill(this.$right)) {
+			this.$left.text(this.toCompare[0]);
+			this.$right.text(this.toCompare[1]);
+		}
+		if (this.auto) {
+			setTimeout(() => {
+				this.autoCompare();
+			}, 0);
+		}
+	},
+
+	autoCompare: function() {
+		if (this.toCompare[0] > this.toCompare[1]) {
+			this.choice(0)
+		} else {
+			this.choice(1);
+		}
 	},
 
 	// ========================================
@@ -164,14 +197,14 @@ Cursor.prototype = {
 
 			this.node.sortedList = this.merge;
 			this.merge = null;
-			
+
 			this.isEnd = this.node.done();
 		}
 		this.log("AFTER MERGE", this.toMerge, this.toCompare, this.merge, this.sortedList);
 		this.loop();
 	},
 
-	loop: function() {
+	loop: function () {
 		if (!this.isEnd) {
 			this.move();
 		} else {
@@ -179,9 +212,12 @@ Cursor.prototype = {
 		}
 	},
 
-	end: function() {
+	end: function () {
 		this.log("END", this.node);
 		this.log(this.node.sortedList);
+		if (this.callback) {
+			this.callback(this.node.sortedList, this.stats);
+		}
 	},
 
 	// ========================================
